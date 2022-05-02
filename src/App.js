@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import io from "socket.io-client";
 
-let endPoint = "http://127.0.0.1:8000";
-// let endPoint = "http://35.188.189.237:8000";
+//let endPoint = "http://127.0.0.1:8000";
+ let endPoint = "http://35.188.189.237:8000";
 let socket = io.connect(`${endPoint}`);
 
 const App = () => {
