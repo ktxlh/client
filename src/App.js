@@ -8,7 +8,8 @@ let socket = io.connect(`${endPoint}`);
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [user_id, setId] = useState("");
+  const [chat_id, setChatId] = useState("");
+  const [user_id, setUserId] = useState("");
   const [is_listener, setListener] = useState(true);
   const [predictions, setPredictions] = useState([]);
 
@@ -21,28 +22,35 @@ const App = () => {
     setPredictions(args["predictions"]);
   });
 
-  socket.on("log_user_success", () => {
-    console.log("Logged in successfully");
+  socket.on("login_response", args => {
+    if (!args["valid"]) {
+      alert("Invalid login. Check your input.")
+      console.log("Logged in failed");
+    }
+    else {
+      setListener(args["is_listener"]);
+      console.log("Logged in successfully");
+    }
   });
 
   socket.on("dump_logs_success", () => {
     console.log("Dumpped logs successfully");
   });
   
-  const onChangeMessage = e => {
-    setMessage(e.target.value);
-  };
 
-  const onSetId = e => {
-    setId(e.target.value);
+  const onSetUserId = e => {
+    setUserId(e.target.value);
   };
-
-  const onChangeRole = e => {
-    setListener(e.target.value === "listener");
+  const onSetChatId = e => {
+    setChatId(e.target.value);
   };
 
   const onLogIn = () => {
-    socket.emit("log_user", is_listener, user_id);
+    socket.emit("log_user", chat_id, user_id);
+  };
+
+  const onChangeMessage = e => {
+    setMessage(e.target.value);
   };
 
   const onSendMessage = () => {
@@ -55,8 +63,8 @@ const App = () => {
   };
 
   const onSelectPred = x => {
-    socket.emit("log_click", is_listener, x["pred_idx"]);
-    setMessage(x["utterance"]);
+    socket.emit("log_click", is_listener, -1);
+    setMessage(x);
   };
 
   const onDumpLogs = () => {
@@ -70,14 +78,12 @@ const App = () => {
   return (
     <div>
       <h1>This is a dummy frontend to test our backend.</h1>
-      My assigned ID is: <input value={user_id} name="User ID" onChange={e => onSetId(e)}/>.
-      I'm a <select id="role" onChange={x => onChangeRole(x)}>
-        <option value="listener" selected>Listener</option>
-        <option value="client">Client</option>
-      </select> in this mock chat.
+      chat_id: <input value={chat_id} name="Chat ID" onChange={e => onSetChatId(e)}/>.
+      user_id: <input value={user_id} name="User ID" onChange={e => onSetUserId(e)}/>.
       <br/>
       <button onClick={() => onLogIn()}>Log In</button>
       <br/>
+      <p>{is_listener? "Listener" : "Client"}</p><br/>
       <button onClick={() => onDumpLogs() }>Dump Logs</button><br/>
       <button onClick={() => onClearSession() }>Clear Session</button><br/>
 
@@ -91,7 +97,7 @@ const App = () => {
         predictions.length > 0 &&
         predictions.map(x => (
           <div>
-            <button onClick={() => onSelectPred(x)}>{x["utterance"]}</button>
+            <button onClick={() => onSelectPred(x)}>{x}</button>
           </div>
         ))}
       <input value={message} name="message" onChange={e => onChangeMessage(e)} width="100"/>
