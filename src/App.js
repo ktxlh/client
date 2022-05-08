@@ -12,6 +12,7 @@ const App = () => {
   const [user_id, setUserId] = useState("");
   const [is_listener, setListener] = useState(true);
   const [predictions, setPredictions] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
 
   socket.on("error", args => {
     alert("Received error from backend: " + args);
@@ -20,6 +21,7 @@ const App = () => {
   socket.on("new_message", args => {
     setMessages([...messages, {"is_listener": args["is_listener"], "utterance": args["utterance"]}]);
     setPredictions(args["predictions"]);
+    setSuggestions(args["suggestions"]);
   });
 
   socket.on("login_response", args => {
@@ -92,6 +94,13 @@ const App = () => {
             <div> 
               <p>{x["is_listener"] === is_listener? "Me" : "Other"}: {x["utterance"]}</p>
             </div>
+        ))}
+      {is_listener && 
+        suggestions.length > 0 &&
+        suggestions.map(x => (
+          <div>
+            <button>{x}</button>
+          </div>
         ))}
       {is_listener && 
         predictions.length > 0 &&
